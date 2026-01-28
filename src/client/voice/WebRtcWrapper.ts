@@ -244,7 +244,7 @@ export class WebRtcConnWrapper {
 
     this._videoPacketizer.addToChain(new RtcpSrReporter(rtpConfigVideo));
     this._videoPacketizer.addToChain(new RtcpNackResponder());
-    this._videoPacketizer.addToChain(new PacingHandler(pacingBitrate, 1));
+    this._videoPacketizer.addToChain(new PacingHandler(pacingBitrate, 5));
 
     this._setMediaHandler();
   }
