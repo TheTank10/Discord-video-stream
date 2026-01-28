@@ -526,12 +526,19 @@ export async function playStream(
     streamer.signalVideo(true);
     stopStream = () => streamer.signalVideo(false);
   }
-  conn.setPacketizer(videoCodecMap[video.codec]);
-  conn.mediaConnection.setSpeaking(true);
+
   const { width, height, frameRate } = mergedOptions;
+  const resolvedWidth = Math.round(typeof width === "function" ? width(video) : width);
+  const resolvedHeight = Math.round(typeof height === "function" ? height(video) : height);
+
+  conn.setPacketizer(videoCodecMap[video.codec], { 
+    width: resolvedWidth, 
+    height: resolvedHeight 
+  });
+  conn.mediaConnection.setSpeaking(true);
   conn.mediaConnection.setVideoAttributes(true, {
-    width: Math.round(typeof width === "function" ? width(video) : width),
-    height: Math.round(typeof height === "function" ? height(video) : height),
+    width: resolvedWidth,
+    height: resolvedHeight,
     fps: Math.round(
       typeof frameRate === "function" ? frameRate(video) : frameRate,
     ),

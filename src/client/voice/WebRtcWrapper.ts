@@ -158,7 +158,7 @@ export class WebRtcConnWrapper {
     rtpConfig.timestamp += Math.round((frametime * clockRate) / 1000);
   }
 
-  public setPacketizer(videoCodec: string): void {
+  public setPacketizer(videoCodec: string, resolution?: { width: number; height: number }): void {
     if (!this.mediaConnection.webRtcParams)
       throw new Error("WebRTC connection not ready");
     const { audioSsrc, videoSsrc } = this.mediaConnection.webRtcParams;
@@ -204,10 +204,35 @@ export class WebRtcConnWrapper {
       default:
         throw new Error(`Packetizer not implemented for ${this._videoCodec}`);
     }
+
+    const pacingBitrate = this.calculatePacingForResolution(resolution);
+
     this._videoPacketizer.addToChain(new RtcpSrReporter(rtpConfigVideo));
     this._videoPacketizer.addToChain(new RtcpNackResponder());
-    this._videoPacketizer.addToChain(new PacingHandler(25 * 1000 * 1000, 1));
+    this._videoPacketizer.addToChain(new PacingHandler(pacingBitrate, 1));
 
     this._setMediaHandler();
+  }
+
+  private calculatePacingForResolution(resolution?: { width: number; height: number }): number {
+    if (!resolution) {
+      return 25 * 1000 * 1000; // 25 Mbps
+    }
+
+    const pixelCount = resolution.width * resolution.height;
+
+    if (pixelCount <= 640 * 480) {
+      return 8 * 1000 * 1000; // 8 Mbps
+    } else if (pixelCount <= 1280 * 720) {
+      return 15 * 1000 * 1000; // 15 Mbps
+    } else if (pixelCount <= 1280 * 800) {
+      return 35 * 1000 * 1000; // 35 Mbps
+    } else if (pixelCount <= 1920 * 1080) {
+      return 25 * 1000 * 1000; // 25 Mbps
+    } else if (pixelCount <= 2560 * 1440) {
+      return 35 * 1000 * 1000; // 35 Mbps
+    } else {
+      return 50 * 1000 * 1000; // 50 Mbps
+    }
   }
 }
