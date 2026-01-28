@@ -216,23 +216,34 @@ export class WebRtcConnWrapper {
 
   private calculatePacingForResolution(resolution?: { width: number; height: number }): number {
     if (!resolution) {
-      return 25 * 1000 * 1000; // 25 Mbps
+      return 25 * 1000 * 1000;
     }
 
     const pixelCount = resolution.width * resolution.height;
+    console.log(`[PACING] Resolution: ${resolution.width}x${resolution.height} (${pixelCount} pixels)`);
 
+    let pacingBitrate: number;
+    
     if (pixelCount <= 640 * 480) {
-      return 8 * 1000 * 1000; // 8 Mbps
+      pacingBitrate = 8 * 1000 * 1000;
+      console.log('[PACING] Tier: 480p or lower -> 8 Mbps');
     } else if (pixelCount <= 1280 * 720) {
-      return 15 * 1000 * 1000; // 15 Mbps
+      pacingBitrate = 15 * 1000 * 1000;
+      console.log('[PACING] Tier: 720p -> 15 Mbps');
     } else if (pixelCount <= 1280 * 800) {
-      return 35 * 1000 * 1000; // 35 Mbps
+      pacingBitrate = 35 * 1000 * 1000;
+      console.log('[PACING] Tier: 800p -> 35 Mbps');
     } else if (pixelCount <= 1920 * 1080) {
-      return 25 * 1000 * 1000; // 25 Mbps
+      pacingBitrate = 25 * 1000 * 1000;
+      console.log('[PACING] Tier: 1080p -> 25 Mbps');
     } else if (pixelCount <= 2560 * 1440) {
-      return 35 * 1000 * 1000; // 35 Mbps
+      pacingBitrate = 35 * 1000 * 1000;
+      console.log('[PACING] Tier: 1440p -> 35 Mbps');
     } else {
-      return 50 * 1000 * 1000; // 50 Mbps
+      pacingBitrate = 50 * 1000 * 1000;
+      console.log('[PACING] Tier: 4K+ -> 50 Mbps');
     }
+
+    return pacingBitrate;
   }
 }
