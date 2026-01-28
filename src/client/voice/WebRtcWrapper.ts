@@ -36,6 +36,11 @@ export class WebRtcConnWrapper {
   private _videoPacketizer?: RtpPacketizer;
   private _videoCodec?: SupportedVideoCodec;
 
+  private _frameCount = 0;
+  private _totalFrameBytes = 0;
+  private _lastStatsLog = Date.now();
+  private _largestFrame = 0;
+
   constructor(mediaConn: BaseMediaConnection) {
     this._mediaConn = mediaConn;
     this._audioDef = new Audio("0", "SendRecv");
@@ -115,6 +120,36 @@ export class WebRtcConnWrapper {
   public sendVideoFrame(frame: Buffer, frametime: number) {
     if (!this.ready) return;
     if (!this._videoPacketizer) return;
+
+    // Track frame stats
+    this._frameCount++;
+    this._totalFrameBytes += frame.length;
+    if (frame.length > this._largestFrame) {
+      this._largestFrame = frame.length;
+    }
+    
+    // Log stats every 5 seconds
+    const now = Date.now();
+    if (now - this._lastStatsLog > 5000) {
+      const timeSpanSec = (now - this._lastStatsLog) / 1000;
+      const avgBitrate = (this._totalFrameBytes * 8) / timeSpanSec;
+      const avgFrameSize = this._totalFrameBytes / this._frameCount;
+      
+      console.log('[FRAME STATS]', {
+        frames: this._frameCount,
+        avgFrameSize: `${(avgFrameSize / 1024).toFixed(2)} KB`,
+        largestFrame: `${(this._largestFrame / 1024).toFixed(2)} KB`,
+        avgBitrate: `${(avgBitrate / 1_000_000).toFixed(2)} Mbps`,
+        currentFrameSize: `${(frame.length / 1024).toFixed(2)} KB`,
+      });
+      
+      // Reset counters
+      this._frameCount = 0;
+      this._totalFrameBytes = 0;
+      this._largestFrame = 0;
+      this._lastStatsLog = now;
+    }
+
     const { rtpConfig } = this._videoPacketizer;
     const { clockRate } = rtpConfig;
     if (this._videoCodec === "H264") {
