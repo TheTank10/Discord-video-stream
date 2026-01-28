@@ -251,27 +251,29 @@ export class WebRtcConnWrapper {
 
   private calculatePacingForResolution(resolution?: { width: number; height: number }): number {
     if (!resolution) {
+      console.log('[PACING] No resolution provided, using default 25 Mbps');
       return 25 * 1000 * 1000;
     }
 
-    const pixelCount = resolution.width * resolution.height;
-    console.log(`[PACING] Resolution: ${resolution.width}x${resolution.height} (${pixelCount} pixels)`);
+    const { width, height } = resolution;
+    const pixelCount = width * height;
+    console.log(`[PACING] Resolution: ${width}x${height} (${pixelCount} pixels)`);
 
     let pacingBitrate: number;
-    
-    if (pixelCount <= 640 * 480) {
+
+    if (height <= 480) {
       pacingBitrate = 8 * 1000 * 1000;
       console.log('[PACING] Tier: 480p or lower -> 8 Mbps');
-    } else if (pixelCount <= 1280 * 720) {
+    } else if (height <= 720) {
       pacingBitrate = 15 * 1000 * 1000;
       console.log('[PACING] Tier: 720p -> 15 Mbps');
-    } else if (pixelCount <= 1280 * 800) {
-      pacingBitrate = 35 * 1000 * 1000;
-      console.log('[PACING] Tier: 800p -> 35 Mbps');
-    } else if (pixelCount <= 1920 * 1080) {
+    } else if (height <= 800) {
+      pacingBitrate = 40 * 1000 * 1000; 
+      console.log('[PACING] Tier: 800p -> 40 Mbps');
+    } else if (height <= 1080) {
       pacingBitrate = 25 * 1000 * 1000;
       console.log('[PACING] Tier: 1080p -> 25 Mbps');
-    } else if (pixelCount <= 2560 * 1440) {
+    } else if (height <= 1440) {
       pacingBitrate = 35 * 1000 * 1000;
       console.log('[PACING] Tier: 1440p -> 35 Mbps');
     } else {
