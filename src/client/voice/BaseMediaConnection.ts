@@ -522,7 +522,7 @@ a=ice-lite
       token: this.token,
       video: true,
       streams: STREAMS_SIMULCAST,
-      max_dave_protocol_version: Davey.DAVE_PROTOCOL_VERSION ?? 0,
+      max_dave_protocol_version: 0,
     });
   }
 
